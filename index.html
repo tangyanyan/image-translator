@@ -52,6 +52,7 @@
         /* Header */
         .header {
             margin-bottom: 32px;
+            text-align: center;
         }
 
         .header h1 {
@@ -250,10 +251,29 @@
             background: hsl(var(--accent));
         }
 
+        .btn-green {
+            background: hsl(142 76% 36%);
+            color: white;
+        }
+
+        .btn-green:hover:not(:disabled) {
+            background: hsl(142 76% 30%);
+        }
+
         .action-buttons {
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
+        }
+
+        .action-buttons-center {
+            justify-content: center;
+        }
+
+        .entries-actions {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
         }
 
         /* Progress */
@@ -641,30 +661,32 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="action-buttons" style="margin-bottom: 24px;">
-            <button class="btn btn-primary" id="recognizeBtn" disabled>
+        <div class="action-buttons action-buttons-center" style="margin-bottom: 24px;">
+            <button class="btn btn-green" id="recognizeBtn" disabled>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="11" cy="11" r="8"/>
                     <path d="m21 21-4.3-4.3"/>
                 </svg>
                 识别并翻译
             </button>
-            <button class="btn btn-secondary" id="addEntryBtn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 5v14M5 12h14"/>
-                </svg>
-                手动添加条目
-            </button>
-            <button class="btn btn-outline" id="clearAllBtn" style="display: none;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-                </svg>
-                清空全部
-            </button>
         </div>
 
         <!-- Entries Table -->
         <div class="entries-container card" id="entriesContainer">
+            <div class="entries-actions">
+                <button class="btn btn-secondary" id="addEntryBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    手动添加条目
+                </button>
+                <button class="btn btn-outline" id="clearAllBtn" style="display: none;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                    </svg>
+                    清空全部
+                </button>
+            </div>
             <div class="entries-header">
                 <div class="entries-title">识别结果</div>
                 <div class="entries-count">共 <span id="entryCount">0</span> 条</div>
