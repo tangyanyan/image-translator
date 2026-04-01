@@ -918,10 +918,7 @@
         }
 
         // OCR using free OCR.space API (better for handwriting)
-        async function recognizeWithOcrSpace(imageDataUrl, timeout = 30000) {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), timeout);
-            
+        async function recognizeWithOcrSpace(imageDataUrl) {
             try {
                 const base64 = imageDataUrl.split(',')[1];
                 
@@ -936,11 +933,8 @@
                     headers: {
                         'apikey': 'K83524497588957'
                     },
-                    body: formData,
-                    signal: controller.signal
+                    body: formData
                 });
-                
-                clearTimeout(timeoutId);
                 
                 const data = await result.json();
                 
@@ -957,13 +951,8 @@
                     return data.ParsedResults[0].ParsedText;
                 }
             } catch (error) {
-                clearTimeout(timeoutId);
-                if (error.name === 'AbortError') {
-                    console.error('OCR timeout');
-                    alert('识别超时，请检查网络连接后重试。');
-                } else {
-                    console.error('OCR.space Error:', error);
-                }
+                console.error('OCR.space Error:', error);
+                alert('识别失败，请检查网络连接后重试。');
             }
             return null;
         }
@@ -971,24 +960,26 @@
         // OCR Recognition using OCR.space API
         recognizeBtn.addEventListener('click', async () => {
             if (state.isProcessing || state.images.length === 0) return;
-            
+
             state.isProcessing = true;
             recognizeBtn.disabled = true;
             progressContainer.classList.add('active');
-            
+
             const allTexts = [];
-            
+            let hasError = false;
+
             for (let i = 0; i < state.images.length; i++) {
                 const img = state.images[i];
-                
+
                 progressText.textContent = `正在识别第 ${i + 1}/${state.images.length} 张图片...`;
                 progressFill.style.width = `${(i / state.images.length) * 60}%`;
-                
+
                 const recognizedText = await recognizeWithOcrSpace(img.dataUrl);
-                
-                progressFill.style.width = `${((i + 1) / state.images.length) * 70}%`;
-                
-                if (recognizedText) {
+
+                if (recognizedText === null) {
+                    hasError = true;
+                    progressText.textContent = `第 ${i + 1} 张图片识别失败，继续...`;
+                } else {
                     // Filter and clean text
                     const lines = recognizedText
                         .split('\n')
@@ -1003,17 +994,30 @@
                             return line.replace(/\s+/g, ' ').trim();
                         })
                         .filter(line => line.length > 1); // Remove empty lines
-                    
+
                     allTexts.push(...lines);
                 }
+
+                progressFill.style.width = `${((i + 1) / state.images.length) * 70}%`;
             }
-            
+
+            if (allTexts.length === 0) {
+                progressText.textContent = hasError ? '识别失败，请检查网络或稍后重试' : '未识别到有效文本';
+                setTimeout(() => {
+                    progressContainer.classList.remove('active');
+                    state.isProcessing = false;
+                    recognizeBtn.disabled = state.images.length === 0;
+                }, 2000);
+                return;
+            }
+
             progressText.textContent = '正在翻译...';
             progressFill.style.width = '90%';
-            
+
             // Translate each text
             for (let i = 0; i < allTexts.length; i++) {
                 const text = allTexts[i];
+                progressText.textContent = `正在翻译第 ${i + 1}/${allTexts.length} 条...`;
                 const chinese = await translateText(text);
                 state.entries.push({
                     id: Date.now() + i,
@@ -1022,16 +1026,16 @@
                 });
                 progressFill.style.width = `${90 + (i / allTexts.length) * 10}%`;
             }
-            
+
             progressFill.style.width = '100%';
             progressText.textContent = '完成！';
-            
+
             setTimeout(() => {
                 progressContainer.classList.remove('active');
                 state.isProcessing = false;
                 recognizeBtn.disabled = state.images.length === 0;
             }, 500);
-            
+
             renderEntries();
         });
 
@@ -1043,7 +1047,7 @@
         }
 
         // Translation using free API (MyMemory - no API key needed)
-        async function translateText(text, fromLang = 'en', toLang = 'zh-CN', timeout = 10000) {
+        async function translateText(text, fromLang = 'en', toLang = 'zh-CN', timeout = 20000) {
             if (!text || text.trim().length === 0) {
                 return '';
             }
